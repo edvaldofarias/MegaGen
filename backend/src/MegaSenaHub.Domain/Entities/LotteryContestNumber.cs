@@ -29,4 +29,14 @@ public sealed class LotteryContestNumber
 
         return new LotteryContestNumber(Guid.NewGuid(), contestId, megaNumber);
     }
+
+    /// <summary>
+    /// Reconstitui um número de concurso a partir de dados de persistência.
+    /// Não valida regras de negócio — use exclusivamente na camada de Infrastructure.
+    /// </summary>
+    public static LotteryContestNumber Reconstitute(Guid id, Guid contestId, int number)
+    {
+        var megaNumber = MegaSenaNumber.Create(number);
+        return new LotteryContestNumber(id, contestId, megaNumber);
+    }
 }

@@ -96,4 +96,28 @@ public sealed class LotteryContest
     /// </summary>
     public bool IsExactCombination(MegaSenaNumbers betNumbers) =>
         CombinationHash.Value == betNumbers.ToCombinationHash().Value;
+
+    /// <summary>
+    /// Reconstitui um concurso a partir de dados de persistência.
+    /// Não valida regras de negócio — use exclusivamente na camada de Infrastructure.
+    /// </summary>
+    public static LotteryContest Reconstitute(
+        Guid id,
+        int contestNumber,
+        DateOnly drawDate,
+        IEnumerable<int> drawnNumbers,
+        bool accumulated,
+        decimal totalPrize,
+        string source,
+        DateTimeOffset createdAt,
+        DateTimeOffset updatedAt,
+        IEnumerable<PrizeRange> prizeRanges)
+    {
+        var numbers = MegaSenaNumbers.Create(drawnNumbers);
+        var contest = new LotteryContest(id, contestNumber, drawDate, numbers, accumulated, totalPrize, source, createdAt);
+        contest.UpdatedAt = updatedAt;
+        foreach (var pr in prizeRanges)
+            contest._prizeRanges.Add(pr);
+        return contest;
+    }
 }

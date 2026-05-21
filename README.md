@@ -167,6 +167,106 @@ backend/
 **50 testes de Application** com NSubstitute (mocks) e FluentAssertions.
 
 ---
+
+## Etapa 3 — Infrastructure (EF Core + PostgreSQL)
+
+Nesta etapa foi implementada a camada de Infrastructure com persistência real usando **Entity Framework Core 9 + PostgreSQL (Npgsql)** e testes de integração com **Testcontainers**.
+
+### Modificações no Domain (retrocompatíveis)
+
+- Adicionado método estático `Reconstitute(...)` em todas as entidades (`LotteryContest`, `PrizeRange`, `UserBet`, `UserBetResult`, `LotteryContestNumber`), permitindo que a camada de Infrastructure reconstrua objetos de domínio a partir de dados do banco sem contornar construtores privados.
+- Sem alteração de regras de negócio. 126 testes existentes continuam passando.
+
+### Design da persistência
+
+| Tabela                    | Descrição                                           |
+|---------------------------|-----------------------------------------------------|
+| `lottery_contests`        | Concursos da Mega-Sena (índice único em `contest_number` e `combination_hash`) |
+| `lottery_contest_numbers` | Dezenas sorteadas (PK composta `contest_id + number`) |
+| `prize_ranges`            | Faixas de premiação por concurso (4, 5 ou 6 acertos) |
+| `user_bets`               | Apostas de usuários                                 |
+| `user_bet_numbers`        | Dezenas da aposta (PK composta `user_bet_id + number`) |
+
+Convenção de nomenclatura: `UseSnakeCaseNamingConvention()` (via EFCore.NamingConventions).
+
+**Decisão arquitetural:** os modelos EF Core são classes internas (`Data/Models/`) separadas das entidades de domínio. O mapeamento domínio↔persistência acontece nos repositórios via métodos `ToData` / `ToDomain`, preservando o isolamento do Domain.
+
+### Componentes implementados
+
+| Componente                        | Caminho                                             |
+|-----------------------------------|-----------------------------------------------------|
+| `MegaSenaHubDbContext`            | `Data/MegaSenaHubDbContext.cs`                      |
+| `LotteryContestConfiguration`     | `Data/Configurations/`                              |
+| `LotteryContestNumberConfiguration` | `Data/Configurations/`                            |
+| `PrizeRangeConfiguration`         | `Data/Configurations/`                              |
+| `UserBetConfiguration`            | `Data/Configurations/`                              |
+| `UserBetNumberConfiguration`      | `Data/Configurations/`                              |
+| `ContestRepository`               | `Repositories/ContestRepository.cs`                 |
+| `UserBetRepository`               | `Repositories/UserBetRepository.cs`                 |
+| `MegaSenaHubDbContextFactory`     | `Factories/MegaSenaHubDbContextFactory.cs`          |
+| `DependencyInjection`             | `DependencyInjection.cs`                            |
+| Migration `InitialCreate`         | `Migrations/`                                       |
+
+### Testes de integração
+
+- `PostgreSqlFixture`: sobe um container PostgreSQL 16 via **Testcontainers** e aplica o schema com `EnsureCreatedAsync`.
+- 13 testes de integração: 8 para `ContestRepository` e 5 para `UserBetRepository`, cobrindo persistência, leitura, busca por números, frequências e atualização de status.
+
+### Como rodar os testes de integração
+
+Requer Docker em execução:
+
+```bash
+dotnet test tests/MegaSenaHub.Infrastructure.Tests
+```
+
+### Como subir o banco local (docker-compose)
+
+```bash
+docker-compose up -d
+```
+
+Conexão: `Host=localhost;Port=5432;Database=megasena_hub;Username=megasena;Password=megasena123`
+
+### Como aplicar as migrations
+
+```bash
+dotnet ef migrations add <NomeDaMigration> --project src/MegaSenaHub.Infrastructure
+dotnet ef database update --project src/MegaSenaHub.Infrastructure
+```
+
+> **Nota:** Até que o projeto `MegaSenaHub.Api` seja criado (Etapa 4), a `MegaSenaHubDbContextFactory` serve como startup project de design-time para o EF Core.
+
+### Estrutura — Etapa 3
+
+```
+backend/
+├── src/
+│   └── MegaSenaHub.Infrastructure/
+│       ├── Data/
+│       │   ├── Configurations/         (5 configurações IEntityTypeConfiguration<T>)
+│       │   ├── Models/                 (LotteryContestData, LotteryContestNumberData,
+│       │   │                            PrizeRangeData, UserBetData, UserBetNumberData)
+│       │   └── MegaSenaHubDbContext.cs
+│       ├── Factories/
+│       │   └── MegaSenaHubDbContextFactory.cs
+│       ├── Migrations/
+│       │   └── *_InitialCreate.cs
+│       ├── Repositories/
+│       │   ├── ContestRepository.cs
+│       │   └── UserBetRepository.cs
+│       └── DependencyInjection.cs
+└── tests/
+    └── MegaSenaHub.Infrastructure.Tests/
+        ├── Fixtures/
+        │   └── PostgreSqlFixture.cs
+        └── Repositories/
+            ├── ContestRepositoryTests.cs    (8 testes)
+            └── UserBetRepositoryTests.cs    (5 testes)
+```
+
+**13 testes de integração** com Testcontainers + FluentAssertions.
+
 - Enums;
 - Regras de negócio;
 - Testes unitários do domínio.
@@ -235,7 +335,7 @@ Para saída detalhada:
 dotnet test --logger "console;verbosity=normal"
 ```
 
-**Resultado atual:** `126 testes — 76 Domain + 50 Application — todos passando`.
+**Resultado atual:** `126 testes — 76 Domain + 50 Application — todos passando`. Mais 13 testes de integração (Infrastructure) requerem Docker.
 
 ---
 
@@ -243,8 +343,7 @@ dotnet test --logger "console;verbosity=normal"
 
 - [x] ~~Etapa 1: Domain — entidades, value objects, enums, regras e 76 testes~~
 - [x] ~~Etapa 2: Application — 7 use cases, 6 interfaces, 9 DTOs, 50 testes com mocks~~
-- [ ] Etapa 3: Infrastructure — EF Core, repositórios, migrations, clientes HTTP;
+- [x] ~~Etapa 3: Infrastructure — EF Core, repositórios, migrations, Testcontainers~~
 - [ ] Etapa 4: API — endpoints REST, autenticação JWT, middleware;
 - [ ] Etapa 5: RabbitMQ — `IMessagePublisher`, consumers, dead-letter;
 - [ ] Etapa 6: Workers — `Worker.Sync` e `Worker.Consumer`;
-- [ ] Docker Compose para orquestração local.

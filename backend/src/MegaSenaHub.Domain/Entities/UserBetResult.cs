@@ -51,4 +51,12 @@ public sealed class UserBetResult
             prizeAmount,
             checkedAt);
     }
+
+    /// <summary>
+    /// Reconstitui um resultado de aposta a partir de dados de persistência.
+    /// Não valida regras de negócio — use exclusivamente na camada de Infrastructure.
+    /// </summary>
+    public static UserBetResult Reconstitute(
+        Guid id, Guid userBetId, Guid contestId, int hits, decimal prizeAmount, DateTimeOffset checkedAt)
+        => new UserBetResult(id, userBetId, contestId, hits, prizeAmount, checkedAt);
 }

@@ -94,4 +94,27 @@ public sealed class UserBet
         CheckedAt = checkedAt;
         PrizeWon = prizeWon;
     }
+
+    /// <summary>
+    /// Reconstitui uma aposta a partir de dados de persistência.
+    /// Não valida regras de negócio — use exclusivamente na camada de Infrastructure.
+    /// </summary>
+    public static UserBet Reconstitute(
+        Guid id,
+        Guid userId,
+        int contestNumber,
+        IEnumerable<int> numbers,
+        decimal amountPaid,
+        DateTimeOffset createdAt,
+        DateTimeOffset? checkedAt,
+        UserBetStatus status,
+        decimal prizeWon)
+    {
+        var megaNumbers = MegaSenaNumbers.Create(numbers);
+        var bet = new UserBet(id, userId, contestNumber, megaNumbers, amountPaid, createdAt);
+        bet.Status = status;
+        bet.CheckedAt = checkedAt;
+        bet.PrizeWon = prizeWon;
+        return bet;
+    }
 }

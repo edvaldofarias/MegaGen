@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: megasena-hub-postgres
+    environment:
+      POSTGRES_DB: megasena_hub
+      POSTGRES_USER: megasena
+      POSTGRES_PASSWORD: megasena123
+    ports:
+      - "5432:5432"
+    volumes:
+      - megasena_hub_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U megasena -d megasena_hub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  megasena_hub_postgres_data:

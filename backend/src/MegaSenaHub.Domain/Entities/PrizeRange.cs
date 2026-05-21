@@ -40,4 +40,11 @@ public sealed class PrizeRange
 
         return new PrizeRange(Guid.NewGuid(), contestId, hits, winners, prizeAmount);
     }
+
+    /// <summary>
+    /// Reconstitui uma faixa de premiação a partir de dados de persistência.
+    /// Não valida regras de negócio — use exclusivamente na camada de Infrastructure.
+    /// </summary>
+    public static PrizeRange Reconstitute(Guid id, Guid contestId, int hits, int winners, decimal prizeAmount)
+        => new PrizeRange(id, contestId, hits, winners, prizeAmount);
 }
