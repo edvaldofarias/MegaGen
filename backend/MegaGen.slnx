@@ -1,10 +1,12 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/MegaSenaHub.Api/MegaSenaHub.Api.csproj" />
     <Project Path="src/MegaSenaHub.Application/MegaSenaHub.Application.csproj" />
     <Project Path="src/MegaSenaHub.Domain/MegaSenaHub.Domain.csproj" />
     <Project Path="src/MegaSenaHub.Infrastructure/MegaSenaHub.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/MegaSenaHub.Api.Tests/MegaSenaHub.Api.Tests.csproj" />
     <Project Path="tests/MegaSenaHub.Application.Tests/MegaSenaHub.Application.Tests.csproj" />
     <Project Path="tests/MegaSenaHub.Domain.Tests/MegaSenaHub.Domain.Tests.csproj" />
     <Project Path="tests/MegaSenaHub.Infrastructure.Tests/MegaSenaHub.Infrastructure.Tests.csproj" />

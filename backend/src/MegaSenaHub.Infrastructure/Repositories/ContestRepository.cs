@@ -72,6 +72,18 @@ internal sealed class ContestRepository : IContestRepository
             .AsReadOnly();
     }
 
+    public async Task<LotteryContest?> GetLatestAsync(CancellationToken cancellationToken)
+    {
+        var data = await _context.LotteryContests
+            .Include(c => c.Numbers)
+            .Include(c => c.PrizeRanges)
+            .AsNoTracking()
+            .OrderByDescending(c => c.ContestNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return data is null ? null : ToDomain(data);
+    }
+
     private static LotteryContestData ToData(LotteryContest contest) =>
         new()
         {

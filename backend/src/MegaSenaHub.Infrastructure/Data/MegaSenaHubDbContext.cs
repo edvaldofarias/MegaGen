@@ -1,10 +1,12 @@
 using System.Reflection;
 using MegaSenaHub.Infrastructure.Data.Models;
+using MegaSenaHub.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace MegaSenaHub.Infrastructure.Data;
 
-public sealed class MegaSenaHubDbContext : DbContext
+public sealed class MegaSenaHubDbContext : IdentityDbContext<ApplicationUser>
 {
     public MegaSenaHubDbContext(DbContextOptions<MegaSenaHubDbContext> options) : base(options) { }
 
@@ -16,6 +18,7 @@ public sealed class MegaSenaHubDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }

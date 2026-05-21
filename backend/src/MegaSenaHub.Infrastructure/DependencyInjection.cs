@@ -1,6 +1,9 @@
 using MegaSenaHub.Application.Abstractions;
+using MegaSenaHub.Infrastructure.Adapters;
 using MegaSenaHub.Infrastructure.Data;
+using MegaSenaHub.Infrastructure.Identity;
 using MegaSenaHub.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,8 +25,24 @@ public static class DependencyInjection
                 .UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention());
 
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 8;
+                options.Password.RequireDigit = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<MegaSenaHubDbContext>()
+            .AddDefaultTokenProviders();
+
         services.AddScoped<IContestRepository, ContestRepository>();
         services.AddScoped<IUserBetRepository, UserBetRepository>();
+        services.AddScoped<IMessagePublisher, NoOpMessagePublisher>();
+        services.AddScoped<ILotteryResultProvider, NoOpLotteryResultProvider>();
+        services.AddScoped<IAuthService, IdentityAuthService>();
+        services.AddScoped<JwtTokenService>();
 
         return services;
     }

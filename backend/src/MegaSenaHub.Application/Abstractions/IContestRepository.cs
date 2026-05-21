@@ -17,4 +17,7 @@ public interface IContestRepository
 
     Task<bool> CombinationHashExistsAsync(string combinationHash, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<NumberFrequencyDto>> GetNumberFrequenciesAsync(CancellationToken cancellationToken);
+
+    /// <summary>Retorna o concurso com o maior número de sorteio registrado.</summary>
+    Task<LotteryContest?> GetLatestAsync(CancellationToken cancellationToken);
 }
