@@ -19,6 +19,7 @@ internal sealed class ContestRepository : IContestRepository
     public async Task<IReadOnlyCollection<int>> GetExistingContestNumbersAsync(CancellationToken cancellationToken)
     {
         var numbers = await _context.LotteryContests
+            .AsNoTracking()
             .Select(c => c.ContestNumber)
             .ToListAsync(cancellationToken);
         return numbers.AsReadOnly();
@@ -45,17 +46,11 @@ internal sealed class ContestRepository : IContestRepository
     public async Task<IReadOnlyCollection<LotteryContest>> FindContestsWithAnyNumbersAsync(
         IReadOnlyCollection<int> numbers, CancellationToken cancellationToken)
     {
-        var contestIds = await _context.LotteryContestNumbers
-            .Where(n => numbers.Contains(n.Number))
-            .Select(n => n.ContestId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
         var data = await _context.LotteryContests
             .Include(c => c.Numbers)
             .Include(c => c.PrizeRanges)
             .AsNoTracking()
-            .Where(c => contestIds.Contains(c.Id))
+            .Where(c => c.Numbers.Any(n => numbers.Contains(n.Number)))
             .ToListAsync(cancellationToken);
 
         return data.ConvertAll(ToDomain).AsReadOnly();
