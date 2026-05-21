@@ -18,6 +18,9 @@ public sealed class UserBet
     public DateTimeOffset? CheckedAt { get; private set; }
     public UserBetStatus Status { get; private set; }
 
+    /// <summary>Valor ganho com esta aposta após verificação. Zero enquanto pendente ou quando perdeu.</summary>
+    public decimal PrizeWon { get; private set; }
+
     private UserBet(
         Guid id,
         Guid userId,
@@ -63,10 +66,21 @@ public sealed class UserBet
     }
 
     /// <summary>
-    /// Verifica a aposta contra o resultado de um concurso e atualiza o status e CheckedAt.
+    /// Verifica a aposta contra o resultado de um concurso e atualiza o status, CheckedAt e PrizeWon.
+    /// Overload de conveniência que usa DateTimeOffset.UtcNow como timestamp.
     /// </summary>
-    public void CheckAgainstContest(LotteryContest contest)
+    public void CheckAgainstContest(LotteryContest contest) =>
+        CheckAgainstContest(contest, DateTimeOffset.UtcNow, 0m);
+
+    /// <summary>
+    /// Verifica a aposta contra o resultado de um concurso.
+    /// Use este overload em use cases que injetam IClock e conhecem o prêmio.
+    /// </summary>
+    public void CheckAgainstContest(LotteryContest contest, DateTimeOffset checkedAt, decimal prizeWon = 0m)
     {
+        if (prizeWon < 0)
+            throw new DomainException($"Prize won cannot be negative. Value: {prizeWon}.");
+
         var hits = contest.CountHits(Numbers);
 
         Status = hits switch
@@ -77,6 +91,7 @@ public sealed class UserBet
             _ => UserBetStatus.Lost
         };
 
-        CheckedAt = DateTimeOffset.UtcNow;
+        CheckedAt = checkedAt;
+        PrizeWon = prizeWon;
     }
 }

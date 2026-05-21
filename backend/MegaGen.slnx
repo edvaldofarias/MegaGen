@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/MegaSenaHub.Application/MegaSenaHub.Application.csproj" />
     <Project Path="src/MegaSenaHub.Domain/MegaSenaHub.Domain.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/MegaSenaHub.Application.Tests/MegaSenaHub.Application.Tests.csproj" />
     <Project Path="tests/MegaSenaHub.Domain.Tests/MegaSenaHub.Domain.Tests.csproj" />
   </Folder>
 </Solution>
